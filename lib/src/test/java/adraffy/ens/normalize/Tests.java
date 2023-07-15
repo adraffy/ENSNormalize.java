@@ -60,8 +60,8 @@ class Tests {
         Assertions.assertEquals("\u00E8", ENSNormalize.NF.NFC("\u0065\u0300"));
         Assertions.assertEquals("\u0065\u0300", ENSNormalize.NF.NFD("\u00E8"));
         
-        Assertions.assertArrayEquals(new int[]{ 0xE8 }, ENSNormalize.NF.NFC(new int[]{ 0x65, 0x300 }));
-        Assertions.assertArrayEquals(new int[]{ 0x65, 0x300 }, ENSNormalize.NF.NFD(new int[]{ 0xE8 }));
+        Assertions.assertArrayEquals(new int[]{ 0xE8 }, ENSNormalize.NF.NFC(0x65, 0x300));
+        Assertions.assertArrayEquals(new int[]{ 0x65, 0x300 }, ENSNormalize.NF.NFD(0xE8));
 
     }
     

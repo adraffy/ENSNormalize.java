@@ -206,14 +206,14 @@ public class NF {
         return cps.consume();
     }
     
-    public int[] NFD(int[] cps) {
+    public int[] NFD(int... cps) {
         int[] v = decomposed(cps);
         for (int i = 0, e = v.length; i < e; i++) {
             v[i] = unpackCP(v[i]);
         }
         return v;
     }
-    public int[] NFC(int[] cps) {
+    public int[] NFC(int... cps) {
         return composedFromPacked(decomposed(cps));
     }
     

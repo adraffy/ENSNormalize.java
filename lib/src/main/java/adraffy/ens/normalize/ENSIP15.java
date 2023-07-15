@@ -198,7 +198,7 @@ public class ENSIP15 {
         return sb.toString();
     }
     
-    public String safeImplode(int ...cps) { 
+    public String safeImplode(int... cps) { 
         StringBuilder sb = new StringBuilder(cps.length + 16);
         safeImplode(sb, cps); 
         return sb.toString();

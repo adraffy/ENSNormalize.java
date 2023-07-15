@@ -115,6 +115,6 @@ ENSNormalize.NF.NFC("\u0065\u0300"); // "\u00E8"
 ENSNormalize.NF.NFD("\u00E8");       // "\u0065\u0300"
 
 // int[] -> int[]
-ENSNormalize.NF.NFC(new int[]{ 0x65, 0x300 }); // [0xE8]
-ENSNormalize.NF.NFD(new int[]{ 0xE8 });        // [0x65, 0x300]
+ENSNormalize.NF.NFC(0x65, 0x300); // [0xE8]
+ENSNormalize.NF.NFD(0xE8);        // [0x65, 0x300]
 ```
