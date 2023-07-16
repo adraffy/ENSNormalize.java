@@ -6,6 +6,7 @@
 	* Spec Hash: [`962316964553fce6188e25a5166a4c1e906333adf53bdf2964c71dedc0f8e2c8`](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/spec.json)
 * Passes **100%** [ENSIP-15 Validation Tests](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/tests.json)
 * Passes **100%** [Unicode Normalization Tests](https://unicode.org/Public/15.0.0/ucd/NormalizationTest.txt)
+* Space Efficient: `~61KB .jar` using [binary resources](./lib/src/main/resources/) via [make.js](./compress/make.js)
 * JDK Support: `8+`
 
 ```java
