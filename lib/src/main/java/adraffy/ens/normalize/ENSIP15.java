@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
 
 public class ENSIP15 {
  
-    static public final char STOP = '.';
+    static public final char STOP_CH = '.';
     
     public final NF NF;
     public final int maxNonSpacingMarks;
@@ -190,7 +190,9 @@ public class ENSIP15 {
     public String safeCodepoint(int cp) {
         StringBuilder sb = new StringBuilder();
         if (!shouldEscape.contains(cp)) {
+            sb.append('"');
             safeImplode(sb, new int[]{ cp });
+            sb.append('"');
             sb.append(' ');
         }
         appendHexEscape(sb, cp);
@@ -228,7 +230,7 @@ public class ENSIP15 {
     public String normalize(String name) {
         return transform(name, cps -> outputTokenize(cps, NF::NFC, e -> e.normalized.array), tokens -> {
             int[] norm = flatten(tokens);
-            normalize(norm, tokens);
+            checkValidLabel(norm, tokens);
             return norm;
         });
     }
@@ -236,7 +238,7 @@ public class ENSIP15 {
     public String beautify(String name) {
         return transform(name, cps -> outputTokenize(cps, NF::NFC, e -> e.beautified.array), tokens -> {
             int[] norm = flatten(tokens);
-            Group group = normalize(norm, tokens);
+            Group group = checkValidLabel(norm, tokens);
             if (group != GREEK) {
                 for (int i = 0, e = norm.length; i < e; i++) {
                     if (norm[i] == 0x3BE) norm[i] = 0x39E;
@@ -257,7 +259,7 @@ public class ENSIP15 {
         int prev = 0;
         boolean more = true;
         while (more) {
-            int next = name.indexOf(STOP, prev);
+            int next = name.indexOf(STOP_CH, prev);
             if (next < 0) {
                 next = n;
                 more = false;
@@ -265,11 +267,11 @@ public class ENSIP15 {
             int[] cps = StringUtils.explode(name, prev, next);
             try {
                 List<OutputToken> tokens = tokenizer.apply(cps);
-                if (prev == 0 && !more && tokens.isEmpty()) return ""; 
+                if (prev == 0 && !more && tokens.isEmpty()) return ""; // single null label allowance
                 for (int cp: normalizer.apply(tokens)) {
                     StringUtils.appendCodepoint(sb, cp);
                 }
-                if (more) sb.append(STOP);
+                if (more) sb.append(STOP_CH);
             } catch (NormException e) {
                 throw new InvalidLabelException(prev, next, String.format("Invalid label \"%s\": %s", safeImplode(cps), e.getMessage()), e);
             }
@@ -283,7 +285,7 @@ public class ENSIP15 {
         int prev = 0;
         boolean more = true;
         while (more) {
-            int next = name.indexOf(STOP, prev);
+            int next = name.indexOf(STOP_CH, prev);
             if (next < 0) {
                 next = name.length();
                 more = false;
@@ -294,9 +296,9 @@ public class ENSIP15 {
             l.end = next;
             try {
                 l.tokens = outputTokenize(l.input, NF::NFC, e -> e.normalized.toArray()); // make copy
-                if (prev == 0 && !more && l.tokens.isEmpty()) break;
+                if (prev == 0 && !more && l.tokens.isEmpty()) break; // single null label allowance
                 l.normalized = flatten(l.tokens);
-                l.group = normalize(l.normalized, l.tokens);
+                l.group = checkValidLabel(l.normalized, l.tokens);
             } catch (NormException err) {
                 l.error = err;
             }
@@ -310,7 +312,7 @@ public class ENSIP15 {
     static class EmojiNode {
         EmojiSequence emoji;
         HashMap<Integer, EmojiNode> map;
-        EmojiNode then(Integer cp) {
+        EmojiNode then(Integer cp) { // boxed
             if (map == null) map = new HashMap<>();
             EmojiNode node = map.get(cp);
             if (node == null) {
@@ -377,7 +379,7 @@ public class ENSIP15 {
         return tokens;
     }
     
-    Group normalize(int[] norm, List<OutputToken> tokens) {
+    Group checkValidLabel(int[] norm, List<OutputToken> tokens) {
         if (norm.length == 0) {
             throw new NormException("empty label");
         }
