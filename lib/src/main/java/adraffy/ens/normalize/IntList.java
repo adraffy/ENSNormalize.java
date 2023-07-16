@@ -39,11 +39,7 @@ class IntList {
     }
     
     int[] toArray() {
-        int[] v = array;
-        if (count < v.length) {
-            v = Arrays.copyOf(v, count);
-        }
-        return v;
+        return Arrays.copyOf(array, count);
     }
     
     public IntStream stream() {

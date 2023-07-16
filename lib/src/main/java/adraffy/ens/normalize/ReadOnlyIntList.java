@@ -23,4 +23,8 @@ public class ReadOnlyIntList {
         return Arrays.stream(array);
     }
     
+    public int[] toArray() {
+        return array.clone();
+    }
+    
 }

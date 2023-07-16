@@ -17,19 +17,19 @@ public class ENSIP15 {
     static public final char STOP = '.';
     
     public final NF NF;
+    public final int maxNonSpacingMarks;
     public final ReadOnlyIntSet shouldEscape;
     public final ReadOnlyIntSet ignored;
     public final ReadOnlyIntSet combiningMarks;
-    public final int maxNonSpacingMarks;
     public final ReadOnlyIntSet nonSpacingMarks;
     public final ReadOnlyIntSet NFCCheck;
+    public final ReadOnlyIntSet possiblyValid;
+    public final ReadOnlyIntSet invalidCompositions;
     public final Map<Integer,String> fenced;
     public final Map<Integer,ReadOnlyIntList> mapped;
     public final List<Group> groups;
     public final List<EmojiSequence> emojis;
     public final List<Whole> wholes;
-    public final ReadOnlyIntSet possiblyValid;
-    public final ReadOnlyIntSet invalidCompositions;
     
     final HashMap<Integer,Whole> confusables = new HashMap<>();
     final EmojiNode emojiRoot = new EmojiNode();
@@ -55,7 +55,7 @@ public class ENSIP15 {
         for (EmojiSequence emoji: emojis) {
             ArrayList<EmojiNode> nodes = new ArrayList<>();
             nodes.add(emojiRoot);
-            for (Integer cp: emoji.beautified.array) {
+            for (Integer cp: emoji.beautified.array) { // stay boxed
                 if (cp == 0xFE0F) {
                     for (int i = 0, e = nodes.size(); i < e; i++) {
                         nodes.add(nodes.get(i).then(cp));
@@ -130,9 +130,8 @@ public class ENSIP15 {
             for (int cp: valid) fn.accept(cp);
             for (int cp: confused) fn.accept(cp);
             for (Extent extent: extents) {
-                int[] complement = cover.stream().filter(g -> !extent.groups.contains(g)).mapToInt(g -> g.index).toArray();
-                Arrays.sort(complement);
-                for (Integer cp: extent.cps) {
+                int[] complement = cover.stream().filter(g -> !extent.groups.contains(g)).mapToInt(g -> g.index).sorted().toArray();
+                for (Integer cp: extent.cps) { // stay boxed
                     w.complements.put(cp, complement);
                 }
             }
@@ -227,7 +226,7 @@ public class ENSIP15 {
     }
     
     public String normalize(String name) {
-        return transform(name, cps -> outputTokenize(cps, NF::NFC, e -> e.normalized), tokens -> {
+        return transform(name, cps -> outputTokenize(cps, NF::NFC, e -> e.normalized.array), tokens -> {
             int[] norm = flatten(tokens);
             normalize(norm, tokens);
             return norm;
@@ -235,7 +234,7 @@ public class ENSIP15 {
     }
     
     public String beautify(String name) {
-        return transform(name, cps -> outputTokenize(cps, NF::NFC, e -> e.beautified), tokens -> {
+        return transform(name, cps -> outputTokenize(cps, NF::NFC, e -> e.beautified.array), tokens -> {
             int[] norm = flatten(tokens);
             Group group = normalize(norm, tokens);
             if (group != GREEK) {
@@ -249,7 +248,7 @@ public class ENSIP15 {
     
     public String normalizeFragment(String name) { return normalizeFragment(name, false); }
     public String normalizeFragment(String name, boolean decompose) {
-        return transform(name, cps -> outputTokenize(cps, decompose ? NF::NFD : NF::NFC, e -> e.normalized), ENSIP15::flatten);
+        return transform(name, cps -> outputTokenize(cps, decompose ? NF::NFD : NF::NFC, e -> e.normalized.array), ENSIP15::flatten);
     }
     
     String transform(String name, Function<int[], List<OutputToken>> tokenizer, Function<List<OutputToken>, int[]> normalizer) {
@@ -294,7 +293,7 @@ public class ENSIP15 {
             l.start = prev;
             l.end = next;
             try {
-                l.tokens = outputTokenize(l.input, NF::NFC, e -> e.normalized);
+                l.tokens = outputTokenize(l.input, NF::NFC, e -> e.normalized.toArray()); // make copy
                 if (prev == 0 && !more && l.tokens.isEmpty()) break;
                 l.normalized = flatten(l.tokens);
                 l.group = normalize(l.normalized, l.tokens);
@@ -345,7 +344,7 @@ public class ENSIP15 {
         return last;
     }
     
-    ArrayList<OutputToken> outputTokenize(int[] cps, Function<int[], int[]> nf, Function<EmojiSequence, ReadOnlyIntList> emojiStyler) {
+    ArrayList<OutputToken> outputTokenize(int[] cps, Function<int[], int[]> nf, Function<EmojiSequence, int[]> emojiStyler) {
         ArrayList<OutputToken> tokens = new ArrayList<>();
         int n = cps.length;
         IntList buf = new IntList(n);
@@ -356,7 +355,7 @@ public class ENSIP15 {
                     tokens.add(new OutputToken(nf.apply(buf.consume()), null));
                     buf.count = 0;
                 }
-                tokens.add(new OutputToken(emojiStyler.apply(match.emoji).array, match.emoji)); 
+                tokens.add(new OutputToken(emojiStyler.apply(match.emoji), match.emoji)); 
                 i = match.pos;
             } else {
                 int cp = cps[i++];
@@ -380,7 +379,6 @@ public class ENSIP15 {
     
     Group normalize(int[] norm, List<OutputToken> tokens) {
         if (norm.length == 0) {
-            //return null;
             throw new NormException("empty label");
         }
         checkLeadingUnderscore(norm);
@@ -396,7 +394,7 @@ public class ENSIP15 {
         checkCombiningMarks(tokens);
         checkFenced(norm);
         int[] unique = Arrays.stream(chars).distinct().toArray();
-        Group group = determineGroup(unique)[0];
+        Group group = determineGroup(unique);
         checkGroup(group, chars); // need text in order
         checkWhole(group, unique); // only need unique text
         return group;
@@ -461,7 +459,7 @@ public class ENSIP15 {
         }
     }
     
-    Group[] determineGroup(int[] unique) {
+    Group determineGroup(int[] unique) {
         int prev = groups.size();
         Group[] gs = groups.toArray(new Group[prev]);
         for (int cp: unique) {
@@ -486,7 +484,7 @@ public class ENSIP15 {
             prev = next;
             if (prev == 1) break; // there is only one group left
         }
-        return gs;
+        return gs[0];
     }
     
     void checkGroup(Group group, int[] cps) {
