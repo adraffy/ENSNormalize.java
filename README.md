@@ -6,11 +6,12 @@
 	* Spec Hash: [`962316964553fce6188e25a5166a4c1e906333adf53bdf2964c71dedc0f8e2c8`](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/spec.json)
 * Passes **100%** [ENSIP-15 Validation Tests](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/tests.json)
 * Passes **100%** [Unicode Normalization Tests](https://unicode.org/Public/15.0.0/ucd/NormalizationTest.txt)
-* Space Efficient: `~61KB .jar` using [binary resources](./lib/src/main/resources/) via [make.js](./compress/make.js)
+* Space Efficient: `~58KB .jar` using [binary resources](./lib/src/main/resources/) via [make.js](./compress/make.js)
 * JDK Support: `8+`
-
+* Maven Central Repository: [`io.github.adraffy`
+](https://central.sonatype.com/artifact/io.github.adraffy/ens-normalize/) 
 ```java
-import io.github.adraffy.ens;
+import io.github.adraffy.ens.ENSNormalize;
 ENSNormalize.ENSIP15 // Main Library (global instance)
 ```
 
@@ -109,7 +110,7 @@ ENSNormalize.ENSIP15.combiningMarks.contains(0x20E3); // COMBINING ENCLOSING KEY
 ### Unicode Normalization Forms [NF](./lib/src/main/java/io/github/adraffy/ens/NF.java)
 
 ```java
-import io.github.adraffy.ens;
+import io.github.adraffy.ens.ENSNormalize;
 
 // String -> String
 ENSNormalize.NF.NFC("\u0065\u0300"); // "\u00E8"
