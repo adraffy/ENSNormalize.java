@@ -1,4 +1,4 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 import java.util.List;
 

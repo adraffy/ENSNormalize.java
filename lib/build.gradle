@@ -1,29 +1,83 @@
 plugins {
-    id 'java-library'
+	id 'java-library'
+	id 'maven-publish'
+	id 'signing'
 }
 
 description 'ENSIP 15'
+group 'io.github.adraffy'
 version '0.1.0'
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
-    testImplementation 'org.json:json:20230618'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+	testImplementation 'org.json:json:20230618'
 }
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
-    }
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(8)
+	}
+	withSourcesJar()
+	withJavadocJar()
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
+test {
+	useJUnitPlatform()
 }
 
 tasks.withType(JavaCompile) {
-    options.compilerArgs += ['-Xlint:unchecked']
+	options.encoding = 'UTF-8'
+	options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			//groupId = project.group
+			artifactId = 'ens-normalize'
+			//version = project.version
+			from components.java
+			pom {
+				name = 'ENSNormalize'
+				description = project.description
+				url = 'https://github.com/adraffy/ENSNormalize.java'
+				licenses {
+					license {
+						name = 'MIT License'
+						url = 'https://github.com/adraffy/ENSNormalize.java/blob/main/LICENSE'
+					}
+				}
+				developers {
+					developer {
+						id = 'raffy'
+						name = 'raffy.eth'
+						email = 'raffy@me.com'
+					}
+				}
+				scm {
+					connection = 'scm:git:https://github.com/adraffy/ENSNormalize.java.git'
+					developerConnection = 'scm:git:https://github.com/adraffy/ENSNormalize.java.git'
+					url = 'https://github.com/adraffy/ENSNormalize.java'
+				}
+			}
+		}
+	}
+	repositories {
+		maven {
+			name = 'OSSRH'
+			url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+			credentials {
+				username = 'raffy'
+				password = project.properties.password
+			}
+		}
+	}
+}
+
+signing {
+	sign publishing.publications.mavenJava
 }

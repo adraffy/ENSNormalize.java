@@ -1,4 +1,4 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -42,7 +42,7 @@ class IntList {
         return Arrays.copyOf(array, count);
     }
     
-    public IntStream stream() {
+    IntStream stream() {
         return Arrays.stream(array, 0, count);
     }
     

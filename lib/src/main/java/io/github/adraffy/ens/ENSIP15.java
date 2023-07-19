@@ -1,4 +1,4 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +14,21 @@ import java.util.stream.IntStream;
 
 public class ENSIP15 {
  
+    // error kinds
+    static public final String DISALLOWED_CHARACTER = "disallowed character";
+    static public final String ILLEGAL_MIXTURE = "illegal mixture";
+    static public final String WHOLE_CONFUSABLE = "whole-script confusable";
+    static public final String EMPTY_LABEL = "empty label";
+    static public final String NSM_DUPLICATE = "duplicate non-spacing marks";
+    static public final String NSM_EXCESSIVE = "excessive non-spacing marks";
+    static public final String CM_LEADING = "leading combining mark";
+    static public final String CM_AFTER_EMOJI = "emoji + combining mark";
+    static public final String FENCED_LEADING = "leading fenced";
+    static public final String FENCED_ADJACENT = "adjacent fenced";
+    static public final String FENCED_TRAILING = "trailing fenced";
+    static public final String INVALID_LABEL_EXTENSION = "invalid label extension";
+    static public final String INVALID_UNDERSCORE = "underscore allowed only at start";
+    
     static public final char STOP_CH = '.';
     
     public final NF NF;
@@ -55,7 +70,7 @@ public class ENSIP15 {
         for (EmojiSequence emoji: emojis) {
             ArrayList<EmojiNode> nodes = new ArrayList<>();
             nodes.add(emojiRoot);
-            for (Integer cp: emoji.beautified.array) { // stay boxed
+            for (int cp: emoji.beautified.array) {
                 if (cp == 0xFE0F) {
                     for (int i = 0, e = nodes.size(); i < e; i++) {
                         nodes.add(nodes.get(i).then(cp));
@@ -94,7 +109,7 @@ public class ENSIP15 {
         HashSet<Integer> unique = new HashSet<>(union);
         unique.removeAll(multi);
         unique.removeAll(confusables.keySet());
-        unique.forEach(cp -> confusables.put(cp, Whole.UNIQUE_PH));
+        for (Integer cp: unique) confusables.put(cp, Whole.UNIQUE_PH); // stay boxed
         
          // precompute: special groups
         GREEK = groups.stream().filter(g -> g.name.equals("Greek")).findFirst().get();
@@ -186,7 +201,8 @@ public class ENSIP15 {
         sb.append('}');
     }
     
-    // format as "X {HEX}" if possible
+    // printable: "X" {HEX}
+    // otherwise: {HEX} 
     public String safeCodepoint(int cp) {
         StringBuilder sb = new StringBuilder();
         if (!shouldEscape.contains(cp)) {
@@ -312,7 +328,7 @@ public class ENSIP15 {
     static class EmojiNode {
         EmojiSequence emoji;
         HashMap<Integer, EmojiNode> map;
-        EmojiNode then(Integer cp) { // boxed
+        EmojiNode then(int cp) {
             if (map == null) map = new HashMap<>();
             EmojiNode node = map.get(cp);
             if (node == null) {
@@ -381,7 +397,7 @@ public class ENSIP15 {
     
     Group checkValidLabel(int[] norm, List<OutputToken> tokens) {
         if (norm.length == 0) {
-            throw new NormException("empty label");
+            throw new NormException(EMPTY_LABEL);
         }
         checkLeadingUnderscore(norm);
         boolean emoji = tokens.size() > 1 || tokens.get(0).emoji != null;
@@ -410,7 +426,7 @@ public class ENSIP15 {
                 if (cp != UNDERSCORE) allowed = false;
             } else {
                 if (cp == UNDERSCORE) {
-                    throw new NormException("underscore allowed only at start");
+                    throw new NormException(INVALID_UNDERSCORE);
                 }
             }
         }
@@ -419,14 +435,14 @@ public class ENSIP15 {
     static void checkLabelExtension(int[] cps)  {
         final int HYPHEN = 0x2D;
         if (cps.length >= 4 && cps[2] == HYPHEN && cps[3] == HYPHEN) {
-            throw new NormException("invalid label extension", StringUtils.implode(Arrays.copyOf(cps, 4)));
+            throw new NormException(INVALID_LABEL_EXTENSION, StringUtils.implode(Arrays.copyOf(cps, 4)));
         }
     }
     
     void checkFenced(int[] cps)  {
         String name = fenced.get(cps[0]);
         if (name != null) {
-            throw new NormException("leading fenced", name);
+            throw new NormException(FENCED_LEADING, name);
         }
         int n = cps.length;
         int last = -1;
@@ -435,14 +451,14 @@ public class ENSIP15 {
             name = fenced.get(cps[i]);
             if (name != null) {
                 if (last == i) {
-                    throw new NormException("adjacent fenced", String.format("%s + %s", prev, name));
+                    throw new NormException(FENCED_ADJACENT, String.format("%s + %s", prev, name));
                 }
                 last = i + 1;
                 prev = name;
             }
         }
         if (last == n) {
-            throw new NormException("trailing fenced", prev);
+            throw new NormException(FENCED_TRAILING, prev);
         }
     }
     
@@ -453,9 +469,9 @@ public class ENSIP15 {
             int cp = t.cps[0];
             if (combiningMarks.contains(cp)) {
                 if (i == 0) {
-                    throw new NormException("leading combining mark", safeCodepoint(cp));
+                    throw new NormException(CM_LEADING, safeCodepoint(cp));
                 } else {
-                    throw new NormException("emoji + combining mark", String.format("%s + %s", tokens.get(i - 1).emoji.form, safeCodepoint(cp)));
+                    throw new NormException(CM_AFTER_EMOJI, String.format("%s + %s", tokens.get(i - 1).emoji.form, safeCodepoint(cp)));
                 }
             }
         }
@@ -505,14 +521,14 @@ public class ENSIP15 {
                     for (int k = i; k < j; k++) {
                         // a. Forbid sequences of the same nonspacing mark.
                         if (decomposed[k] == cp) {
-                            throw new NormException("duplicate non-spacing marks", safeCodepoint(cp));
+                            throw new NormException(NSM_DUPLICATE, safeCodepoint(cp));
                         }
                     }
                 }
                 // b. Forbid sequences of more than 4 nonspacing marks (gc=Mn or gc=Me).
                 int n = j - i;
                 if (n > maxNonSpacingMarks) {
-                    throw new NormException("excessive non-spacing marks", String.format("%s (%d/%d)", safeImplode(Arrays.copyOfRange(decomposed, i-1, j)), n, maxNonSpacingMarks));
+                    throw new NormException(NSM_EXCESSIVE, String.format("%s (%d/%d)", safeImplode(Arrays.copyOfRange(decomposed, i-1, j)), n, maxNonSpacingMarks));
                 }
                 i = j;
             }

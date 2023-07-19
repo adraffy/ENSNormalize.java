@@ -1,4 +1,4 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -61,11 +61,9 @@ public class Decoder {
     public int readUnsigned() {
         int a = 0;
         int w;
-        int n;
-        for (int i = 0; ; )
-        {
+        for (int i = 0; ; ) {
             w = magic[i];
-            n = 1 << w;
+            int n = 1 << w;
             if (++i == magic.length || !readBit()) break;
             a += n;
         }
@@ -107,7 +105,7 @@ public class Decoder {
     
     public <T> ArrayList<T> readTree(Function<int[],T> fn) {
         ArrayList<T> ret = new ArrayList<>();
-        readTree(ret, fn, new IntList(16));
+        readTree(ret, fn, new IntList());
         return ret;
     }
     

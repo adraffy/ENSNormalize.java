@@ -1,4 +1,4 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 public class ENSNormalize {
     
     static public final NF NF = new NF(decoder("/nf.bin"));
-    static public final ENSIP15 ENSIP15 = new ENSIP15(NF, decoder("/ensip.bin"));
+    static public final ENSIP15 ENSIP15 = new ENSIP15(NF, decoder("/spec.bin"));
     
     static Decoder decoder(String name) {
         try {

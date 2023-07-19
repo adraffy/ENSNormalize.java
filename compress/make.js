@@ -4,18 +4,16 @@ import {readFileSync, writeFileSync} from 'node:fs';
 import {Encoder} from './Encoder.js';
 import {Magic} from './Magic.js';
 import {
-	compare_arrays, transpose, group_by, collect_while, same, partition, 
+	compare_arrays, transpose, group_by, collect_while, same, 
 	read_unique, read_unsorted_deltas, read_sorted_ascending, read_tree, read_str
 } from './utils.js';
-import { createHash } from 'node:crypto';
 
 const BASE_DIR = fileURLToPath(new URL('.', import.meta.url));
 const DATA_DIR = join(BASE_DIR, 'data');
-const SPEC_FILE = join(DATA_DIR, 'spec.json');
 const RESOURCES_DIR = join(BASE_DIR, '../lib/src/main/resources/');
 
 const NF = JSON.parse(readFileSync(join(DATA_DIR, 'nf.json')));
-const SPEC = JSON.parse(readFileSync(SPEC_FILE));
+const SPEC = JSON.parse(readFileSync(join(DATA_DIR, 'spec.json')));
 
 let decomp = NF.decomp.map(x => x.flat()).sort(compare_arrays);
 let decomp1 = decomp.filter(x => x.length === 2);
@@ -26,85 +24,82 @@ function bit_flags_from_group(g) {
 	return (g.restricted?1:0) + (g.cm?2:0);
 }
 
-const w1 = new Encoder();
-w1.str(NF.unicode.split(' ')[0]);
-w1.unique(NF.exclusions);
-w1.unique(NF.qc);
+const enc_nf = new Encoder();
+enc_nf.str(NF.unicode.split(' ')[0]);
+enc_nf.unique(NF.exclusions);
+enc_nf.unique(NF.qc);
 
-w1.unique(decomp1.map(x => x[0]));
-w1.unsorted_deltas(decomp1.map(x => x[1]));
-w1.unique(decomp2.map(x => x[0]));
-w1.unsorted_deltas(decomp2.map(x => x[1]));
-w1.unsorted_deltas(decomp2.map(x => x[2]));
+enc_nf.unique(decomp1.map(x => x[0]));
+enc_nf.unsorted_deltas(decomp1.map(x => x[1]));
+enc_nf.unique(decomp2.map(x => x[0]));
+enc_nf.unsorted_deltas(decomp2.map(x => x[1]));
+enc_nf.unsorted_deltas(decomp2.map(x => x[2]));
 
 for (let v of NF.ranks) {
-	w1.unique(v);
+	enc_nf.unique(v);
 }
-w1.unique([]);
+enc_nf.unique([]);
 
-const w2 = new Encoder();
-//w2.str(createHash('SHA256').)
-w2.unique(SPEC.escape);
-w2.unique(SPEC.ignored);
-w2.unique(SPEC.cm);
-w2.symbol(SPEC.nsm_max);
-w2.unique(SPEC.nsm);
-w2.unique(SPEC.nfc_check);
+const enc_spec = new Encoder();
+enc_spec.unique(SPEC.escape);
+enc_spec.unique(SPEC.ignored);
+enc_spec.unique(SPEC.cm);
+enc_spec.symbol(SPEC.nsm_max);
+enc_spec.unique(SPEC.nsm);
+enc_spec.unique(SPEC.nfc_check);
 
-w2.symbol(SPEC.fenced.length)
-w2.sorted_ascending(SPEC.fenced.map(x => x[0]));
-SPEC.fenced.forEach(x => w2.str(x[1]));
+enc_spec.symbol(SPEC.fenced.length)
+enc_spec.sorted_ascending(SPEC.fenced.map(x => x[0]));
+SPEC.fenced.forEach(x => enc_spec.str(x[1]));
 
 for (let v of group_by(SPEC.mapped, x => x[1].length)) {
 	let m = transpose(v.map(x => x[1]));
-	w2.symbol(m.length);
-	w2.unique(v.map(x => x[0]));
+	enc_spec.symbol(m.length);
+	enc_spec.unique(v.map(x => x[0]));
 	for (let u of m) {
-		w2.unsorted_deltas(u);
+		enc_spec.unsorted_deltas(u);
 	}
 }
-w2.symbol(0);
+enc_spec.symbol(0);
 
 for (let g of SPEC.groups) {
-	w2.str(g.name);
-	w2.symbol(bit_flags_from_group(g));
-	w2.unique(g.primary);
-	w2.unique(g.secondary);	
+	enc_spec.str(g.name);
+	enc_spec.symbol(bit_flags_from_group(g));
+	enc_spec.unique(g.primary);
+	enc_spec.unique(g.secondary);	
 }
-w2.str('');
+enc_spec.str('');
 
-w2.tree(SPEC.emoji);
+enc_spec.tree(SPEC.emoji);
 for (let x of SPEC.wholes) {
-	w2.unique(x.confused);
-	w2.unique(x.valid);
+	enc_spec.unique(x.confused);
+	enc_spec.unique(x.valid);
 }
-w2.unique([]);
+enc_spec.unique([]);
 
-let magic1 = new Magic([2,6,8,11,14,15,18]);
-let magic2 = new Magic([1,3,7,13,16,17,18,19]);
-let bytes1 = magic1.bytes_from_symbols(w1.symbols);
-let bytes2 = magic2.bytes_from_symbols(w2.symbols);
+let magic_nf   = new Magic([2,6,8,11,14,15,18]);
+let magic_spec = new Magic([1,3,7,13,16,17,18,19]);
+let bytes_nf   = magic_nf.bytes_from_symbols(enc_nf.symbols);
+let bytes_spec = magic_spec.bytes_from_symbols(enc_spec.symbols);
 
 if (0) { // enable to recompute (very slow)
-	[magic1, bytes1] = Magic.optimize(w1.symbols, 20); 
-	[magic2, bytes2] = Magic.optimize(w2.symbols, 20);
+	[magic_nf, bytes_nf] = Magic.optimize(enc_nf.symbols, 20); 
+	[magic_spec, bytes_spec] = Magic.optimize(enc_spec.symbols, 20);
 }
 
-console.log(`  NF: ${bytes1.length} using ${magic1.widths}`);
-console.log(`Spec: ${bytes2.length} using ${magic2.widths}`);
+console.log(`  NF: ${bytes_nf.length} using ${magic_nf.widths}`);
+console.log(`Spec: ${bytes_spec.length} using ${magic_spec.widths}`);
 
 function align_buf(buf, align) {
 	let x = buf.length % align;
 	if (x) buf = Buffer.concat([buf, Buffer.alloc(align - x)]);
-
-
 	return buf;
 }
 
-writeFileSync(join(RESOURCES_DIR, 'nf.bin'), align_buf(bytes1, 4));
-writeFileSync(join(RESOURCES_DIR, 'ensip.bin'), align_buf(bytes2, 4));
+writeFileSync(join(RESOURCES_DIR, 'nf.bin'),   align_buf(bytes_nf, 4));
+writeFileSync(join(RESOURCES_DIR, 'spec.bin'), align_buf(bytes_spec, 4));
 
-const r1 = Magic.reader_from_bytes(bytes1);
+const r1 = Magic.reader_from_bytes(bytes_nf);
 console.log(read_str(r1));
 console.log(same(NF.exclusions, read_unique(r1)));
 console.log(same(NF.qc, read_unique(r1)));
@@ -124,7 +119,7 @@ console.log(same(NF.ranks, collect_while(() => {
 	if (v.length) return v;
 })));
 
-const r2 = Magic.reader_from_bytes(bytes2);
+const r2 = Magic.reader_from_bytes(bytes_spec);
 console.log(same(SPEC.escape, read_unique(r2)));
 console.log(same(SPEC.ignored, read_unique(r2)));
 console.log(same(SPEC.cm, read_unique(r2)));

@@ -1,4 +1,4 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -49,7 +49,7 @@ class Tests {
         Assertions.assertThrows(InvalidLabelException.class, () -> ENSNormalize.ENSIP15.normalize("\u03BF\u043E"));
         Assertions.assertEquals("\u03BF\u043E", ENSNormalize.ENSIP15.normalizeFragment("\u03BF\u043E"));
           
-        Assertions.assertEquals("\u25CC\u0303\u200E {303}", ENSNormalize.ENSIP15.safeCodepoint(0x303));
+        Assertions.assertEquals("\"\u25CC\u0303\u200E\" {303}", ENSNormalize.ENSIP15.safeCodepoint(0x303));
         Assertions.assertEquals("{FE0F}", ENSNormalize.ENSIP15.safeCodepoint(0xFE0F));
         Assertions.assertEquals("\u25CC\u0303{FE0F}\u200E", ENSNormalize.ENSIP15.safeImplode(0x303, 0xFE0F));
         

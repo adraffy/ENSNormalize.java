@@ -1,11 +1,25 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.stream.IntStream;
 
-public interface ReadOnlyIntSet {
+public class ReadOnlyIntSet extends ReadOnlyIntList {
     
+    static public final ReadOnlyIntSet EMPTY = new ReadOnlyIntSet(new int[0]);
+    
+    static ReadOnlyIntSet fromOwnedUnsorted(int[] v) {        
+        Arrays.sort(v);
+        return new ReadOnlyIntSet(v);
+    }
+    
+    ReadOnlyIntSet(int[] v) {
+        super(v);
+    }
+    
+    public boolean contains(int x) {
+        return Arrays.binarySearch(array, x) >= 0;
+    }
+    
+    /*
     public boolean contains(int x);    
     public int size();
     public IntStream stream();
@@ -62,5 +76,6 @@ public interface ReadOnlyIntSet {
             return set.stream().mapToInt(x -> x);
         }
     }
+    */
     
 }

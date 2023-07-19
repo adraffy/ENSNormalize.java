@@ -10,11 +10,11 @@
 * JDK Support: `8+`
 
 ```java
-import adraffy.ens.normalize;
+import io.github.adraffy.ens;
 ENSNormalize.ENSIP15 // Main Library (global instance)
 ```
 
-### Primary API [ENSIP15](./lib/src/main/java/adraffy/ens/normalize/ENSIP15.java)
+### Primary API [ENSIP15](./lib/src/main/java/io/github/adraffy/ens/ENSIP15.java)
 
 ```java
 // String -> String
@@ -25,7 +25,7 @@ ENSNormalize.ENSIP15.normalize("RaFFY🚴‍♂️.eTh"); // "raffy🚴‍♂.et
 ENSNormalize.ENSIP15.beautify("1⃣2⃣.eth"); // "1️⃣2️⃣.eth"
 ```
 
-### Output-based Tokenization [Label](./lib/src/main/java/adraffy/ens/normalize/Label.java)
+### Output-based Tokenization [Label](./lib/src/main/java/io/github/adraffy/ens/Label.java)
 
 ```java
 // String -> List<Label>
@@ -53,17 +53,17 @@ List<Label> labels = ENSNormalize.ENSIP15.split("💩Raffy.eth_");
 
 ### Normalization Properties
 
-* [Group](./lib/src/main/java/adraffy/ens/normalize/Group.java) — `ENSIP15.groups: List<Group>`
-* [EmojiSequence](./lib/src/main/java/adraffy/ens/normalize/EmojiSequence.java) — `ENSIP15.emojis: List<EmojiSequence>`
-* [Whole](./lib/src/main/java/adraffy/ens/normalize/Whole.java) — `ENSIP15.wholes: List<Whole>`
+* [Group](./lib/src/main/java/io/github/adraffy/ens/Group.java) — `ENSIP15.groups: List<Group>`
+* [EmojiSequence](./lib/src/main/java/io/github/adraffy/ens/EmojiSequence.java) — `ENSIP15.emojis: List<EmojiSequence>`
+* [Whole](./lib/src/main/java/io/github/adraffy/ens/Whole.java) — `ENSIP15.wholes: List<Whole>`
 
 ### Error Handling
 
-All errors are safe to print. [NormException](./lib/src/main/java/adraffy/ens/normalize/NormException.java) `{ kind: string, reason: string? }` is the base exception.  Functions that accept names as input wrap their exceptions in [InvalidLabelException](./lib/src/main/java/adraffy/ens/normalize/InvalidLabelException.java) `{ start, end, error: NormException }` for additional context.
+All errors are safe to print. [NormException](./lib/src/main/java/io/github/adraffy/ens/NormException.java) `{ kind: string, reason: string? }` is the base exception.  Functions that accept names as input wrap their exceptions in [InvalidLabelException](./lib/src/main/java/io/github/adraffy/ens/InvalidLabelException.java) `{ start, end, error: NormException }` for additional context.
 
-* `"disallowed character"` — [DisallowedCharacterException](./lib/src/main/java/adraffy/ens/normalize/DisallowedCharacterException.java) `{ cp }`
-* `"illegal mixture"` — [IllegalMixtureException](./lib/src/main/java/adraffy/ens/normalize/IllegalMixtureException.java) `{ cp, group, other? }`
-* `"whole-script confusable"` — [ConfusableException](./lib/src/main/java/adraffy/ens/normalize/ConfusableException.java) `{ group, other }`
+* `"disallowed character"` — [DisallowedCharacterException](./lib/src/main/java/io/github/adraffy/ens/DisallowedCharacterException.java) `{ cp }`
+* `"illegal mixture"` — [IllegalMixtureException](./lib/src/main/java/io/github/adraffy/ens/IllegalMixtureException.java) `{ cp, group, other? }`
+* `"whole-script confusable"` — [ConfusableException](./lib/src/main/java/io/github/adraffy/ens/ConfusableException.java) `{ group, other }`
 * `"empty label"`
 * `"duplicate non-spacing marks"`
 * `"excessive non-spacing marks"`
@@ -106,10 +106,10 @@ Determine if a character is a combining mark:
 ENSNormalize.ENSIP15.combiningMarks.contains(0x20E3); // COMBINING ENCLOSING KEYCAP => true
 ```
 
-### Unicode Normalization Forms [NF](./lib/src/main/java/adraffy/ens/normalize/NF.java)
+### Unicode Normalization Forms [NF](./lib/src/main/java/io/github/adraffy/ens/NF.java)
 
 ```java
-import adraffy.ens.normalize;
+import io.github.adraffy.ens;
 
 // String -> String
 ENSNormalize.NF.NFC("\u0065\u0300"); // "\u00E8"

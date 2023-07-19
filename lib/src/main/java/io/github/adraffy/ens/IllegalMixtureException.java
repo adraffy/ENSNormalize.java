@@ -1,4 +1,4 @@
-package adraffy.ens.normalize;
+package io.github.adraffy.ens;
 
 public class IllegalMixtureException extends NormException {
     
@@ -7,7 +7,7 @@ public class IllegalMixtureException extends NormException {
     public final Group other; // nullable
     
     IllegalMixtureException(String reason, int cp, Group group, Group other) {
-        super("illegal mixture", reason);
+        super(ENSIP15.ILLEGAL_MIXTURE, reason);
         this.cp = cp;
         this.group = group;
         this.other = other;
