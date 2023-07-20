@@ -288,7 +288,7 @@ public class ENSIP15 {
                     StringUtils.appendCodepoint(sb, cp);
                 }
                 if (more) sb.append(STOP_CH);
-            } catch (ENSIPException e) {
+            } catch (NormException e) {
                 throw new InvalidLabelException(prev, next, String.format("Invalid label \"%s\": %s", safeImplode(cps), e.getMessage()), e);
             }
             prev = next + 1;
@@ -315,7 +315,7 @@ public class ENSIP15 {
                 l.tokens = outputTokenize(l.input, NF::NFC, e -> e.normalized.toArray()); // make copy
                 l.normalized = flatten(l.tokens);
                 l.group = checkValidLabel(l.normalized, l.tokens);
-            } catch (ENSIPException err) {
+            } catch (NormException err) {
                 l.error = err;
             }
             labels.add(l);
@@ -397,7 +397,7 @@ public class ENSIP15 {
     
     Group checkValidLabel(int[] norm, List<OutputToken> tokens) {
         if (norm.length == 0) {
-            throw new ENSIPException(EMPTY_LABEL);
+            throw new NormException(EMPTY_LABEL);
         }
         checkLeadingUnderscore(norm);
         boolean emoji = tokens.size() > 1 || tokens.get(0).emoji != null;
@@ -426,7 +426,7 @@ public class ENSIP15 {
                 if (cp != UNDERSCORE) allowed = false;
             } else {
                 if (cp == UNDERSCORE) {
-                    throw new ENSIPException(INVALID_UNDERSCORE);
+                    throw new NormException(INVALID_UNDERSCORE);
                 }
             }
         }
@@ -435,14 +435,14 @@ public class ENSIP15 {
     static void checkLabelExtension(int[] cps)  {
         final int HYPHEN = 0x2D;
         if (cps.length >= 4 && cps[2] == HYPHEN && cps[3] == HYPHEN) {
-            throw new ENSIPException(INVALID_LABEL_EXTENSION, StringUtils.implode(Arrays.copyOf(cps, 4)));
+            throw new NormException(INVALID_LABEL_EXTENSION, StringUtils.implode(Arrays.copyOf(cps, 4)));
         }
     }
     
     void checkFenced(int[] cps)  {
         String name = fenced.get(cps[0]);
         if (name != null) {
-            throw new ENSIPException(FENCED_LEADING, name);
+            throw new NormException(FENCED_LEADING, name);
         }
         int n = cps.length;
         int last = -1;
@@ -451,14 +451,14 @@ public class ENSIP15 {
             name = fenced.get(cps[i]);
             if (name != null) {
                 if (last == i) {
-                    throw new ENSIPException(FENCED_ADJACENT, String.format("%s + %s", prev, name));
+                    throw new NormException(FENCED_ADJACENT, String.format("%s + %s", prev, name));
                 }
                 last = i + 1;
                 prev = name;
             }
         }
         if (last == n) {
-            throw new ENSIPException(FENCED_TRAILING, prev);
+            throw new NormException(FENCED_TRAILING, prev);
         }
     }
     
@@ -469,9 +469,9 @@ public class ENSIP15 {
             int cp = t.cps[0];
             if (combiningMarks.contains(cp)) {
                 if (i == 0) {
-                    throw new ENSIPException(CM_LEADING, safeCodepoint(cp));
+                    throw new NormException(CM_LEADING, safeCodepoint(cp));
                 } else {
-                    throw new ENSIPException(CM_AFTER_EMOJI, String.format("%s + %s", tokens.get(i - 1).emoji.form, safeCodepoint(cp)));
+                    throw new NormException(CM_AFTER_EMOJI, String.format("%s + %s", tokens.get(i - 1).emoji.form, safeCodepoint(cp)));
                 }
             }
         }
@@ -521,14 +521,14 @@ public class ENSIP15 {
                     for (int k = i; k < j; k++) {
                         // a. Forbid sequences of the same nonspacing mark.
                         if (decomposed[k] == cp) {
-                            throw new ENSIPException(NSM_DUPLICATE, safeCodepoint(cp));
+                            throw new NormException(NSM_DUPLICATE, safeCodepoint(cp));
                         }
                     }
                 }
                 // b. Forbid sequences of more than 4 nonspacing marks (gc=Mn or gc=Me).
                 int n = j - i;
                 if (n > maxNonSpacingMarks) {
-                    throw new ENSIPException(NSM_EXCESSIVE, String.format("%s (%d/%d)", safeImplode(Arrays.copyOfRange(decomposed, i-1, j)), n, maxNonSpacingMarks));
+                    throw new NormException(NSM_EXCESSIVE, String.format("%s (%d/%d)", safeImplode(Arrays.copyOfRange(decomposed, i-1, j)), n, maxNonSpacingMarks));
                 }
                 i = j;
             }

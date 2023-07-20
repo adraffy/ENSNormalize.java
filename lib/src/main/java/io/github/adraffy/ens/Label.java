@@ -8,7 +8,7 @@ public class Label {
     public int start;
     public int end;
     public List<OutputToken> tokens;
-    public ENSIPException error;
+    public NormException error;
     public int[] normalized;
     public Group group;
 

@@ -1,6 +1,6 @@
 package io.github.adraffy.ens;
 
-public class DisallowedCharacterException extends ENSIPException {
+public class DisallowedCharacterException extends NormException {
     
     public final int cp;
     
