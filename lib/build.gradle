@@ -6,7 +6,7 @@ plugins {
 
 description 'ENSIP 15'
 group 'io.github.adraffy'
-version '0.1.1'
+version '0.1.2'
 
 repositories {
 	mavenCentral()
@@ -18,6 +18,8 @@ dependencies {
 }
 
 java {
+	//sourceCompatibility = JavaLanguageVersion.of(8)
+	//targetCompatibility = JavaLanguageVersion.of(8)
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(8)
 	}

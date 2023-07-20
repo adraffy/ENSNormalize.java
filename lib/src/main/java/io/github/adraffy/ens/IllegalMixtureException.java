@@ -1,6 +1,6 @@
 package io.github.adraffy.ens;
 
-public class IllegalMixtureException extends NormException {
+public class IllegalMixtureException extends ENSIPException {
     
     public final int cp;
     public final Group group;

@@ -1,6 +1,6 @@
 package io.github.adraffy.ens;
 
-public class ConfusableException extends NormException {
+public class ConfusableException extends ENSIPException {
     
     public final Group group;
     public final Group other;

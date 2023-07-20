@@ -271,6 +271,7 @@ public class ENSIP15 {
     
     String transform(String name, Function<int[], List<OutputToken>> tokenizer, Function<List<OutputToken>, int[]> normalizer) {
         int n = name.length();
+        if (n == 0) return ""; // null name allowance
         StringBuilder sb = new StringBuilder(n + 16); // guess
         int prev = 0;
         boolean more = true;
@@ -283,12 +284,11 @@ public class ENSIP15 {
             int[] cps = StringUtils.explode(name, prev, next);
             try {
                 List<OutputToken> tokens = tokenizer.apply(cps);
-                if (prev == 0 && !more && tokens.isEmpty()) return ""; // single null label allowance
                 for (int cp: normalizer.apply(tokens)) {
                     StringUtils.appendCodepoint(sb, cp);
                 }
                 if (more) sb.append(STOP_CH);
-            } catch (NormException e) {
+            } catch (ENSIPException e) {
                 throw new InvalidLabelException(prev, next, String.format("Invalid label \"%s\": %s", safeImplode(cps), e.getMessage()), e);
             }
             prev = next + 1;
@@ -297,7 +297,8 @@ public class ENSIP15 {
     }
     
     public List<Label> split(String name) {
-        ArrayList<Label> labels = new ArrayList<>();
+        if (name.isEmpty()) return Collections.emptyList();
+        ArrayList<Label> labels = new ArrayList<>(); // null name allowance
         int prev = 0;
         boolean more = true;
         while (more) {
@@ -312,10 +313,9 @@ public class ENSIP15 {
             l.end = next;
             try {
                 l.tokens = outputTokenize(l.input, NF::NFC, e -> e.normalized.toArray()); // make copy
-                if (prev == 0 && !more && l.tokens.isEmpty()) break; // single null label allowance
                 l.normalized = flatten(l.tokens);
                 l.group = checkValidLabel(l.normalized, l.tokens);
-            } catch (NormException err) {
+            } catch (ENSIPException err) {
                 l.error = err;
             }
             labels.add(l);
@@ -397,7 +397,7 @@ public class ENSIP15 {
     
     Group checkValidLabel(int[] norm, List<OutputToken> tokens) {
         if (norm.length == 0) {
-            throw new NormException(EMPTY_LABEL);
+            throw new ENSIPException(EMPTY_LABEL);
         }
         checkLeadingUnderscore(norm);
         boolean emoji = tokens.size() > 1 || tokens.get(0).emoji != null;
@@ -426,7 +426,7 @@ public class ENSIP15 {
                 if (cp != UNDERSCORE) allowed = false;
             } else {
                 if (cp == UNDERSCORE) {
-                    throw new NormException(INVALID_UNDERSCORE);
+                    throw new ENSIPException(INVALID_UNDERSCORE);
                 }
             }
         }
@@ -435,14 +435,14 @@ public class ENSIP15 {
     static void checkLabelExtension(int[] cps)  {
         final int HYPHEN = 0x2D;
         if (cps.length >= 4 && cps[2] == HYPHEN && cps[3] == HYPHEN) {
-            throw new NormException(INVALID_LABEL_EXTENSION, StringUtils.implode(Arrays.copyOf(cps, 4)));
+            throw new ENSIPException(INVALID_LABEL_EXTENSION, StringUtils.implode(Arrays.copyOf(cps, 4)));
         }
     }
     
     void checkFenced(int[] cps)  {
         String name = fenced.get(cps[0]);
         if (name != null) {
-            throw new NormException(FENCED_LEADING, name);
+            throw new ENSIPException(FENCED_LEADING, name);
         }
         int n = cps.length;
         int last = -1;
@@ -451,14 +451,14 @@ public class ENSIP15 {
             name = fenced.get(cps[i]);
             if (name != null) {
                 if (last == i) {
-                    throw new NormException(FENCED_ADJACENT, String.format("%s + %s", prev, name));
+                    throw new ENSIPException(FENCED_ADJACENT, String.format("%s + %s", prev, name));
                 }
                 last = i + 1;
                 prev = name;
             }
         }
         if (last == n) {
-            throw new NormException(FENCED_TRAILING, prev);
+            throw new ENSIPException(FENCED_TRAILING, prev);
         }
     }
     
@@ -469,9 +469,9 @@ public class ENSIP15 {
             int cp = t.cps[0];
             if (combiningMarks.contains(cp)) {
                 if (i == 0) {
-                    throw new NormException(CM_LEADING, safeCodepoint(cp));
+                    throw new ENSIPException(CM_LEADING, safeCodepoint(cp));
                 } else {
-                    throw new NormException(CM_AFTER_EMOJI, String.format("%s + %s", tokens.get(i - 1).emoji.form, safeCodepoint(cp)));
+                    throw new ENSIPException(CM_AFTER_EMOJI, String.format("%s + %s", tokens.get(i - 1).emoji.form, safeCodepoint(cp)));
                 }
             }
         }
@@ -521,14 +521,14 @@ public class ENSIP15 {
                     for (int k = i; k < j; k++) {
                         // a. Forbid sequences of the same nonspacing mark.
                         if (decomposed[k] == cp) {
-                            throw new NormException(NSM_DUPLICATE, safeCodepoint(cp));
+                            throw new ENSIPException(NSM_DUPLICATE, safeCodepoint(cp));
                         }
                     }
                 }
                 // b. Forbid sequences of more than 4 nonspacing marks (gc=Mn or gc=Me).
                 int n = j - i;
                 if (n > maxNonSpacingMarks) {
-                    throw new NormException(NSM_EXCESSIVE, String.format("%s (%d/%d)", safeImplode(Arrays.copyOfRange(decomposed, i-1, j)), n, maxNonSpacingMarks));
+                    throw new ENSIPException(NSM_EXCESSIVE, String.format("%s (%d/%d)", safeImplode(Arrays.copyOfRange(decomposed, i-1, j)), n, maxNonSpacingMarks));
                 }
                 i = j;
             }
