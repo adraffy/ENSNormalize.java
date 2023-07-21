@@ -39,7 +39,6 @@ public class ENSIP15 {
     public final ReadOnlyIntSet nonSpacingMarks;
     public final ReadOnlyIntSet NFCCheck;
     public final ReadOnlyIntSet possiblyValid;
-    public final ReadOnlyIntSet invalidCompositions;
     public final Map<Integer,String> fenced;
     public final Map<Integer,ReadOnlyIntList> mapped;
     public final List<Group> groups;
@@ -101,10 +100,7 @@ public class ENSIP15 {
         HashSet<Integer> valid = new HashSet<>(union);
         for (int cp: NF.NFD(union.stream().mapToInt(x -> x).toArray())) valid.add(cp);
         possiblyValid = ReadOnlyIntSet.fromOwnedUnsorted(valid.stream().mapToInt(x -> x).toArray());
-        
-        // precompute: invalid compositions
-        invalidCompositions = ReadOnlyIntSet.fromOwnedUnsorted(union.stream().mapToInt(x -> x).filter(x -> !possiblyValid.contains(x)).toArray());
-        
+                
         // precompute: unique non-confusables
         HashSet<Integer> unique = new HashSet<>(union);
         unique.removeAll(multi);
@@ -271,7 +267,7 @@ public class ENSIP15 {
     
     String transform(String name, Function<int[], List<OutputToken>> tokenizer, Function<List<OutputToken>, int[]> normalizer) {
         int n = name.length();
-        if (n == 0) return ""; // null name allowance
+        if (n == 0) return ""; // empty name allowance
         StringBuilder sb = new StringBuilder(n + 16); // guess
         int prev = 0;
         boolean more = true;
@@ -297,8 +293,8 @@ public class ENSIP15 {
     }
     
     public List<Label> split(String name) {
-        if (name.isEmpty()) return Collections.emptyList();
-        ArrayList<Label> labels = new ArrayList<>(); // null name allowance
+        if (name.isEmpty()) return Collections.emptyList(); // empty name allowance
+        ArrayList<Label> labels = new ArrayList<>();
         int prev = 0;
         boolean more = true;
         while (more) {
@@ -488,7 +484,7 @@ public class ENSIP15 {
                 }
             }
             if (next == 0) {   
-                if (invalidCompositions.contains(cp)) {
+                if (!groups.stream().anyMatch(g -> g.contains(cp))) {
                     // the character was composed of valid parts
                     // but it's NFC form is invalid
                     throw new DisallowedCharacterException(safeCodepoint(cp), cp);
