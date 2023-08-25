@@ -6,7 +6,7 @@ plugins {
 
 description 'ENSIP 15'
 group 'io.github.adraffy'
-version '0.1.2'
+version '0.1.3'
 
 repositories {
 	mavenCentral()
@@ -29,6 +29,10 @@ java {
 
 test {
 	useJUnitPlatform()
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
 }
 
 tasks.withType(JavaCompile) {

@@ -62,6 +62,13 @@ class Tests {
         Assertions.assertArrayEquals(new int[]{ 0xE8 }, ENSNormalize.NF.NFC(0x65, 0x300));
         Assertions.assertArrayEquals(new int[]{ 0x65, 0x300 }, ENSNormalize.NF.NFD(0xE8));
 
+        // experimental
+        Assertions.assertEquals(false, ENSNormalize.ENSIP15.normalizeDetails("a").possiblyConfusing);
+        Assertions.assertEquals(2, ENSNormalize.ENSIP15.normalizeDetails("💩⌚").emojis.size());
+        Assertions.assertEquals(true, ENSNormalize.ENSIP15.normalizeDetails("👨‍💻").hasZWJEmoji());
+        Assertions.assertEquals("ASCII+Emoji", ENSNormalize.ENSIP15.normalizeDetails("💩a").groupDescription());
+        Assertions.assertEquals(false, ENSNormalize.ENSIP15.normalizeDetails("💩è.a").possiblyConfusing);
+        Assertions.assertEquals(true, ENSNormalize.ENSIP15.normalizeDetails("💩ì.a").possiblyConfusing);
     }
     
     @Test void NFTests() {

@@ -26,6 +26,20 @@ ENSNormalize.ENSIP15.normalize("RaFFY🚴‍♂️.eTh"); // "raffy🚴‍♂.et
 ENSNormalize.ENSIP15.beautify("1⃣2⃣.eth"); // "1️⃣2️⃣.eth"
 ```
 
+### Additional [NormDetails](./ENSNormalize/NormDetails.cs) (Experimental)
+```c#
+// works like normalize(), throws on invalid names
+// string -> NormDetails
+NormDetails details = ENSNormalize.ENSIP15.normalizeDetails("💩ì.a");
+
+string name; // normalized name
+bool possiblyConfusing; // if name should be carefully reviewed
+HashSet<Group> groups; // unique groups in name
+HashSet<EmojiSequence> emojis; // unique emoji in name
+string groupDescription() = "Emoji+Latin"; // group summary for name
+boolean hasZWJEmoji(); // if any emoji contain 200D
+```
+
 ### Output-based Tokenization [Label](./lib/src/main/java/io/github/adraffy/ens/Label.java)
 
 ```java

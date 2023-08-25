@@ -47,7 +47,10 @@ public class ENSIP15 {
     
     final HashMap<Integer,Whole> confusables = new HashMap<>();
     final EmojiNode emojiRoot = new EmojiNode();
-    final Group GREEK, ASCII, EMOJI;
+    final Group LATIN, GREEK, ASCII, EMOJI;
+
+    // experimental    
+    private final String[] POSSIBLY_CONFUSING = {"ą", "ç", "ę", "ş", "ì", "í", "î", "ï", "ǐ", "ł"};
     
     ENSIP15(NF NF, Decoder dec) {
         this.NF = NF;
@@ -108,6 +111,7 @@ public class ENSIP15 {
         for (Integer cp: unique) confusables.put(cp, Whole.UNIQUE_PH); // stay boxed
         
          // precompute: special groups
+        LATIN = groups.stream().filter(g -> g.name.equals("Latin")).findFirst().get();
         GREEK = groups.stream().filter(g -> g.name.equals("Greek")).findFirst().get();
         ASCII = new Group(-1, GroupKind.ASCII, "ASCII", false, ReadOnlyIntSet.fromOwnedUnsorted(possiblyValid.stream().filter(cp -> cp < 0x80).toArray()), ReadOnlyIntSet.EMPTY);
         EMOJI = new Group(-1, GroupKind.Emoji, "Emoji", false, ReadOnlyIntSet.EMPTY, ReadOnlyIntSet.EMPTY);
@@ -258,6 +262,33 @@ public class ENSIP15 {
             }
             return norm;
         });        
+    }
+    
+    public NormDetails normalizeDetails(String name)  {
+        HashSet<Group> groups = new HashSet<>();
+        HashSet<EmojiSequence> emojis = new HashSet<>();
+        String normed = transform(name, cps -> outputTokenize(cps, NF::NFC, e -> e.normalized.array), tokens -> {
+            int[] norm = flatten(tokens);
+            Group group = checkValidLabel(norm, tokens);
+            for (OutputToken t: tokens) {
+                if (t.emoji != null) {
+                    emojis.add(t.emoji);
+                }
+            }
+            if (group == LATIN && tokens.stream().allMatch(t -> t.emoji != null || t.stream().allMatch(cp -> cp < 0x80))) {
+                group = ASCII;
+            }
+            groups.add(group);
+            return norm;
+        });
+        if (groups.contains(LATIN)) {
+            groups.remove(ASCII);
+        }
+        if (!emojis.isEmpty()) {
+            groups.add(EMOJI);
+        }
+        boolean confusing = Arrays.stream(POSSIBLY_CONFUSING).anyMatch(s -> normed.contains(s));
+        return new NormDetails(normed, groups, emojis, confusing);
     }
     
     public String normalizeFragment(String name) { return normalizeFragment(name, false); }

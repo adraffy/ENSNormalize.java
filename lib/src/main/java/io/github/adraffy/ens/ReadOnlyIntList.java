@@ -19,6 +19,15 @@ public class ReadOnlyIntList {
         return array[index];
     }
     
+    public boolean contains(int value) {
+        for (int x: array) {
+            if (x == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public IntStream stream() {
         return Arrays.stream(array);
     }

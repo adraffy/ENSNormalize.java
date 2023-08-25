@@ -19,6 +19,10 @@ public class EmojiSequence {
         return beautified != normalized;
     }
     
+    public boolean hasZWJ() {        
+        return normalized.contains(0x200D);
+    }
+    
     @Override
     public String toString() {
         return String.format("Emoji[%s]", StringUtils.toHexSequence(beautified.array));
