@@ -26,7 +26,7 @@ ENSNormalize.ENSIP15.normalize("RaFFY🚴‍♂️.eTh"); // "raffy🚴‍♂.et
 ENSNormalize.ENSIP15.beautify("1⃣2⃣.eth"); // "1️⃣2️⃣.eth"
 ```
 
-### Additional [NormDetails](./ENSNormalize/NormDetails.cs) (Experimental)
+### Additional [NormDetails](./lib/src/main/java/io/github/adraffy/ens/NormDetails.java) (Experimental)
 ```c#
 // works like normalize(), throws on invalid names
 // string -> NormDetails
