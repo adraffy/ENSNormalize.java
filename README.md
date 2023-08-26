@@ -27,16 +27,16 @@ ENSNormalize.ENSIP15.beautify("1⃣2⃣.eth"); // "1️⃣2️⃣.eth"
 ```
 
 ### Additional [NormDetails](./lib/src/main/java/io/github/adraffy/ens/NormDetails.java) (Experimental)
-```c#
+```java
 // works like normalize(), throws on invalid names
 // string -> NormDetails
 NormDetails details = ENSNormalize.ENSIP15.normalizeDetails("💩ì.a");
 
-string name; // normalized name
-bool possiblyConfusing; // if name should be carefully reviewed
+String name; // normalized name
+boolean possiblyConfusing; // if name should be carefully reviewed
 HashSet<Group> groups; // unique groups in name
 HashSet<EmojiSequence> emojis; // unique emoji in name
-string groupDescription() = "Emoji+Latin"; // group summary for name
+String groupDescription() = "Emoji+Latin"; // group summary for name
 boolean hasZWJEmoji(); // if any emoji contain 200D
 ```
 
