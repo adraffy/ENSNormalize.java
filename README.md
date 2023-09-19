@@ -1,11 +1,11 @@
 # ENSNormalize.java
 0-dependency [ENSIP-15](https://docs.ens.domains/ens-improvement-proposals/ensip-15-normalization-standard) in Java
 
-* Reference Implementation: [@adraffy/ens-normalize.js](https://github.com/adraffy/ens-normalize.js)
-	* Unicode: `15.0.0`
-	* Spec Hash: [`962316964553fce6188e25a5166a4c1e906333adf53bdf2964c71dedc0f8e2c8`](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/spec.json)
+* Reference Implementation: [adraffy/ens-normalize.js](https://github.com/adraffy/ens-normalize.js)
+	* Unicode: `15.1.0`
+	* Spec Hash: [`1f6d3bdb7a724fe3b91f6d73ab14defcb719e0f4ab79022089c940e7e9c56b9c`](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/spec.json)
 * Passes **100%** [ENSIP-15 Validation Tests](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/tests.json)
-* Passes **100%** [Unicode Normalization Tests](https://unicode.org/Public/15.0.0/ucd/NormalizationTest.txt)
+* Passes **100%** [Unicode Normalization Tests](https://unicode.org/Public/latest/ucd/NormalizationTest.txt)
 * Space Efficient: `~58KB .jar` using [binary resources](./lib/src/main/resources/) via [make.js](./compress/make.js)
 * JDK Support: `8+`
 * Maven Central Repository: [`io.github.adraffy`
