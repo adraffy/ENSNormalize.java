@@ -18,7 +18,7 @@ public class NormDetails {
     }
     
     public String groupDescription() {
-        return groups.stream().map(g -> g.name).collect(Collectors.joining("+"));
+        return groups.stream().map(g -> g.name).sorted().collect(Collectors.joining("+"));
     }
     
     public boolean hasZWJEmoji() {

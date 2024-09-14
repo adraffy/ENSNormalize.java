@@ -1,15 +1,15 @@
 # ENSNormalize.java
-0-dependency [ENSIP-15](https://docs.ens.domains/ens-improvement-proposals/ensip-15-normalization-standard) in Java
+0-dependency [ENSIP-15](https://docs.ens.domains/ensip/15) in Java
 
 * Reference Implementation: [adraffy/ens-normalize.js](https://github.com/adraffy/ens-normalize.js)
-	* Unicode: `15.1.0`
-	* Spec Hash: [`1f6d3bdb7a724fe3b91f6d73ab14defcb719e0f4ab79022089c940e7e9c56b9c`](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/spec.json)
-* Passes **100%** [ENSIP-15 Validation Tests](https://github.com/ensdomains/docs/blob/master/ens-improvement-proposals/ensip-15/tests.json)
-* Passes **100%** [Unicode Normalization Tests](https://unicode.org/Public/latest/ucd/NormalizationTest.txt)
+	* Unicode: `16.0.0`
+	* Spec Hash: [`4b3c5210a328d7097500b413bf075ec210bbac045cd804deae5d1ed771304825`](https://github.com/adraffy/ens-normalize.js/blob/main/derive/output/spec.json)
+* Passes **100%** [ENSIP-15 Validation Tests](https://github.com/adraffy/ens-normalize.js/blob/main/validate/tests.json)
+* Passes **100%** [Unicode Normalization Tests](https://github.com/adraffy/ens-normalize.js/blob/main/derive/output/nf-tests.json)
 * Space Efficient: `~58KB .jar` using [binary resources](./lib/src/main/resources/) via [make.js](./compress/make.js)
 * JDK Support: `8+`
 * Maven Central Repository: [`io.github.adraffy`
-](https://central.sonatype.com/artifact/io.github.adraffy/ens-normalize/) 
+](https://central.sonatype.com/artifact/io.github.adraffy/ens-normalize/) `@0.3.0`
 ```java
 import io.github.adraffy.ens.ENSNormalize;
 ENSNormalize.ENSIP15 // Main Library (global instance)
@@ -134,3 +134,12 @@ ENSNormalize.NF.NFD("\u00E8");       // "\u0065\u0300"
 ENSNormalize.NF.NFC(0x65, 0x300); // [0xE8]
 ENSNormalize.NF.NFD(0xE8);        // [0x65, 0x300]
 ```
+
+## Publish Instructions
+
+* [Sync and Compress](./compress/)
+* Update Gradle: `./gradlew wrapper --gradle-version {VERSION}`
+* Run Tests: `./gradlew test`
+* Ensure [Access Token](https://s01.oss.sonatype.org/)
+* Publish and Sign: `./gradlew publish`
+* [Close and Release](https://s01.oss.sonatype.org/#stagingRepositories)

@@ -6,7 +6,7 @@ plugins {
 
 description 'ENSIP 15'
 group 'io.github.adraffy'
-version '0.2.0'
+version '0.3.0'
 
 repositories {
 	mavenCentral()
@@ -77,8 +77,8 @@ publishing {
 			name = 'OSSRH'
 			url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
 			credentials {
-				username = 'raffy'
-				password = project.properties.password
+				username = project.properties.accessToken
+				password = project.properties.accessTokenPassword
 			}
 		}
 	}
@@ -86,4 +86,5 @@ publishing {
 
 signing {
 	sign publishing.publications.mavenJava
+        sign jar
 }
