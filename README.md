@@ -9,7 +9,7 @@
 * Space Efficient: `~58KB .jar` using [binary resources](./lib/src/main/resources/) via [make.js](./compress/make.js)
 * JDK Support: `8+`
 * Maven Central Repository: [`io.github.adraffy`
-](https://central.sonatype.com/artifact/io.github.adraffy/ens-normalize/) — `0.3.0`
+](https://central.sonatype.com/artifact/io.github.adraffy/ens-normalize/) — `0.3.1`
 ```java
 import io.github.adraffy.ens.ENSNormalize;
 ENSNormalize.ENSIP15 // Main Library (global instance)
@@ -141,5 +141,5 @@ ENSNormalize.NF.NFD(0xE8);        // [0x65, 0x300]
 * Update [Gradle](https://gradle.org/install/): `./gradlew wrapper --gradle-version {VERSION}`
 * Run Tests: `./gradlew test`
 * Ensure [Access Token](https://central.sonatype.com/)
-* Publish and Sign: `./gradlew publish`
-* [Close and Release](https://central.sonatype.com/publishing)
+* Stage: `./gradlew publish`
+* Publish: `./gradlew jreleaserDeploy`

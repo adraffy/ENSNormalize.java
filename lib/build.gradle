@@ -82,6 +82,18 @@ publishing {
 }
 
 jreleaser {
+	gitRootSearch = true
+    release {
+        github {
+            enabled = true
+			token = 'x'
+        }
+    }
+	distributions {
+		main {
+			active = 'ALWAYS'
+		}
+	}
 	signing {
 		active = 'ALWAYS'
 		armored = true
@@ -92,7 +104,7 @@ jreleaser {
 				sonatype {
 					active = 'ALWAYS'
 					url = 'https://central.sonatype.com/api/v1/publisher'
-					stagingRepository('build/staging-deploy')
+					stagingRepositories = ['build/staging-deploy']
 				}
 			}
 		}
