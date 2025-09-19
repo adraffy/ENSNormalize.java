@@ -4,16 +4,18 @@ plugins {
 	id 'signing'
 }
 
-description 'ENSIP 15'
-group 'io.github.adraffy'
-version '0.3.0'
+description = 'ENSIP 15'
+group = 'io.github.adraffy'
+version = '0.3.1'
 
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+	testImplementation platform("org.junit:junit-bom:5.11.0")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 	testImplementation 'org.json:json:20230618'
 }
 
@@ -74,9 +76,9 @@ publishing {
 	}
 	repositories {
 		maven {
-			name = 'OSSRH'
-			url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-			credentials {
+			name = 'ossrh-staging-api'
+			url = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+  			credentials {
 				username = project.properties.accessToken
 				password = project.properties.accessTokenPassword
 			}

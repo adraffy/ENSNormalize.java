@@ -1,6 +1,8 @@
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {readFileSync, writeFileSync} from 'node:fs';
+import assert from 'node:assert';
 import {Encoder} from './Encoder.js';
 import {Magic} from './Magic.js';
 import {
@@ -12,8 +14,17 @@ const BASE_DIR = fileURLToPath(new URL('.', import.meta.url));
 const DATA_DIR = join(BASE_DIR, 'data');
 const RESOURCES_DIR = join(BASE_DIR, '../lib/src/main/resources/');
 
+const spec_bytes = readFileSync(join(DATA_DIR, 'spec.json'));
+const SPEC = JSON.parse(spec_bytes);
 const NF = JSON.parse(readFileSync(join(DATA_DIR, 'nf.json')));
-const SPEC = JSON.parse(readFileSync(join(DATA_DIR, 'spec.json')));
+
+{
+	const {created, unicode, cldr} = SPEC;
+	console.log({
+		created, unicode, cldr,
+		spec_hash: createHash('sha256').update(spec_bytes).digest().toString('hex'),
+	});
+}
 
 let decomp = NF.decomp.map(x => x.flat()).sort(compare_arrays);
 let decomp1 = decomp.filter(x => x.length === 2);
@@ -101,34 +112,34 @@ writeFileSync(join(RESOURCES_DIR, 'spec.bin'), align_buf(bytes_spec, 4));
 
 const r1 = Magic.reader_from_bytes(bytes_nf);
 console.log(read_str(r1));
-console.log(same(NF.exclusions, read_unique(r1)));
-console.log(same(NF.qc, read_unique(r1)));
+assert(same(NF.exclusions, read_unique(r1)));
+assert(same(NF.qc, read_unique(r1)));
 
 let decomp1A = read_unique(r1);
 let decomp1B = read_unsorted_deltas(decomp1A.length, r1);
 let decomp2A = read_unique(r1);
 let decomp2B = read_unsorted_deltas(decomp2A.length, r1);
 let decomp2C = read_unsorted_deltas(decomp2A.length, r1);
-console.log(same(decomp, [
+assert(same(decomp, [
 	...decomp1A.map((x, i) => [x, decomp1B[i]]),
 	...decomp2A.map((x, i) => [x, decomp2B[i], decomp2C[i]]),
 ].sort(compare_arrays)))
 
-console.log(same(NF.ranks, collect_while(() => {
+assert(same(NF.ranks, collect_while(() => {
 	let v = read_unique(r1);
 	if (v.length) return v;
 })));
 
 const r2 = Magic.reader_from_bytes(bytes_spec);
-console.log(same(SPEC.escape, read_unique(r2)));
-console.log(same(SPEC.ignored, read_unique(r2)));
-console.log(same(SPEC.cm, read_unique(r2)));
-console.log(same(SPEC.nsm_max, r2()));
-console.log(same(SPEC.nsm, read_unique(r2)));
-console.log(same(SPEC.nfc_check, read_unique(r2)));
-console.log(same(SPEC.fenced, read_sorted_ascending(r2(), r2).map(x => [x, read_str(r2)])));
+assert(same(SPEC.escape, read_unique(r2)));
+assert(same(SPEC.ignored, read_unique(r2)));
+assert(same(SPEC.cm, read_unique(r2)));
+assert(same(SPEC.nsm_max, r2()));
+assert(same(SPEC.nsm, read_unique(r2)));
+assert(same(SPEC.nfc_check, read_unique(r2)));
+assert(same(SPEC.fenced, read_sorted_ascending(r2(), r2).map(x => [x, read_str(r2)])));
 
-console.log(same(mapped, collect_while(() => {
+assert(same(mapped, collect_while(() => {
 	let w = r2();
 	if (w) {
 		let m = read_unique(r2).map(x => [x]);
@@ -139,7 +150,7 @@ console.log(same(mapped, collect_while(() => {
 	}
 }).flat().sort(compare_arrays)));
 
-console.log(same(SPEC.groups.map(x => [
+assert(same(SPEC.groups.map(x => [
 	x.name,
 	bit_flags_from_group(x),
 	x.primary,
@@ -151,8 +162,8 @@ console.log(same(SPEC.groups.map(x => [
 	}
 })));
 
-console.log(same(SPEC.emoji, read_tree(r2)));
-console.log(same(SPEC.wholes.map(x => [x.confused, x.valid]), collect_while(() => {
+assert(same(SPEC.emoji, read_tree(r2)));
+assert(same(SPEC.wholes.map(x => [x.confused, x.valid]), collect_while(() => {
 	let confused = read_unique(r2);
 	if (confused.length) {
 		let valid = read_unique(r2);
