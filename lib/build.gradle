@@ -1,7 +1,7 @@
 plugins {
 	id 'java-library'
 	id 'maven-publish'
-	id 'signing'
+	id 'org.jreleaser' version '1.20.0'
 }
 
 description = 'ENSIP 15'
@@ -76,17 +76,25 @@ publishing {
 	}
 	repositories {
 		maven {
-			name = 'ossrh-staging-api'
-			url = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
-  			credentials {
-				username = project.properties.accessToken
-				password = project.properties.accessTokenPassword
-			}
+			url = layout.buildDirectory.dir('staging-deploy')
 		}
 	}
 }
 
-signing {
-	sign publishing.publications.mavenJava
-        sign jar
+jreleaser {
+	signing {
+		active = 'ALWAYS'
+		armored = true
+	}
+	deploy {
+		maven {
+			mavenCentral {
+				sonatype {
+					active = 'ALWAYS'
+					url = 'https://central.sonatype.com/api/v1/publisher'
+					stagingRepository('build/staging-deploy')
+				}
+			}
+		}
+	}
 }
