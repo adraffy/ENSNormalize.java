@@ -3,3 +3,4 @@ gradle.properties
 build
 research/
 old/
+.DS_Store
